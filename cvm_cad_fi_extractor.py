@@ -13,12 +13,14 @@ mongodb_bulk_list = []
 with requests.Session() as s:
 
     download = s.get(config['cvm_cad_fi_file'])
+    
+    if not download.ok:
+        raise Exception(download)    
 
     decoded_content = download.content.decode('latin1')
     reader = csv.DictReader(decoded_content.splitlines(), delimiter=';')
     
     for row in [ r for r in reader if r['SIT'] != 'CANCELADA' ]:
-        #row['_id'] = bson.ObjectId()
         row = dict_values_to_float(row, config['cvm_float_values'])
         mongodb_bulk_list.append(
             UpdateOne({'CNPJ_FUNDO': row['CNPJ_FUNDO']}, {'$set': row}, upsert=True)
