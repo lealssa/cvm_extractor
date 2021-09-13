@@ -11,6 +11,9 @@
         "RESG_DIA",
         "NR_COTST"
     ],
+    "cvm_date_values": [
+    	"DT_COMPTC"
+    ],
     "cvm_mongodb_db_name": "cvm_extractor",
     "cvm_mongodb_url": "mongodb://root:root@127.0.0.1:27017"
 }

@@ -1,7 +1,7 @@
 import json
 
 from pymongo.operations import InsertOne
-from utils import get_config, dict_values_to_float
+from utils import get_config, dict_values_to_float, dict_values_to_date
 import requests
 import csv
 import bson
@@ -33,6 +33,7 @@ with requests.Session() as s:
     for row in reader:
         #row['_id'] = bson.ObjectId()
         row = dict_values_to_float(row, config['cvm_float_values'])
+        row = dict_values_to_date(row, config['cvm_date_values'])
         mongodb_bulk_list.append(            
             UpdateOne({ '$and': [ {'CNPJ_FUNDO': row['CNPJ_FUNDO']},{'DT_COMPTC': row['DT_COMPTC']} ] }, {'$set': row}, upsert=True)
         )
