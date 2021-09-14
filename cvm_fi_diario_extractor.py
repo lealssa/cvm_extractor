@@ -1,44 +1,53 @@
 import json
 
 from pymongo.operations import InsertOne
-from utils import get_config, dict_values_to_float, dict_values_to_date
+from utils import get_config, dict_values_to_float, dict_values_to_date, gen_month_list
 import requests
 import csv
 import bson
 from pymongo import InsertOne,UpdateOne, MongoClient
+from datetime import datetime
 
 config = get_config()
 
-# Pega cadastro dos FIs na CVM e insere numa lista
-mongodb_bulk_list = []
+# Monta a lista de meses para extrair
+start_dt = datetime.strptime(config['cvm_inf_diario_fi_init_date'],'%Y-%m-%d').date()
+month_list = gen_month_list(start_dt)
+month_list.sort()
 
 url_base = config['cvm_inf_diario_fi_url_base']
 file_prefix = config['cvm_inf_diario_fi_prefix']
-init_date = config['cvm_inf_diario_fi_init_date']
 
-fi_diario_file = f"{url_base}{file_prefix}{init_date}.csv"
+for month in month_list:
 
-print(fi_diario_file)
+    # Pega cadastro dos FIs na CVM e insere numa lista
+    mongodb_bulk_list = []    
 
-with requests.Session() as s:
+    init_date = month
 
-    download = s.get(fi_diario_file)
+    fi_diario_file = f"{url_base}{file_prefix}{init_date}.csv"
 
-    if not download.ok:
-        raise Exception(download)
+    print(fi_diario_file)
 
-    decoded_content = download.content.decode('latin1')
-    reader = csv.DictReader(decoded_content.splitlines(), delimiter=';')
-    
-    for row in reader:
-        #row['_id'] = bson.ObjectId()
-        row = dict_values_to_float(row, config['cvm_float_values'])
-        row = dict_values_to_date(row, config['cvm_date_values'])
-        mongodb_bulk_list.append(            
-            UpdateOne({ '$and': [ {'CNPJ_FUNDO': row['CNPJ_FUNDO']},{'DT_COMPTC': row['DT_COMPTC']} ] }, {'$set': row}, upsert=True)
-        )
+    with requests.Session() as s:
 
-# Cadastra lista no MongoDB via bulk update (atualiza se existir)
-with MongoClient(config['cvm_mongodb_url']) as client:
-    db = client['cvm_extractor']
-    db.cvm_fi_diario.bulk_write(mongodb_bulk_list, ordered=False)
+        download = s.get(fi_diario_file)
+
+        if not download.ok:
+            raise Exception(download)
+
+        decoded_content = download.content.decode('latin1')
+        reader = csv.DictReader(decoded_content.splitlines(), delimiter=';')
+        
+        for row in reader:
+            #row['_id'] = bson.ObjectId()
+            row = dict_values_to_float(row, config['cvm_float_values'])
+            row = dict_values_to_date(row, config['cvm_date_values'])
+            mongodb_bulk_list.append(            
+                UpdateOne({ '$and': [ {'CNPJ_FUNDO': row['CNPJ_FUNDO']},{'DT_COMPTC': row['DT_COMPTC']} ] }, {'$set': row}, upsert=True)
+            )
+
+    # Cadastra lista no MongoDB via bulk update (atualiza se existir)
+    with MongoClient(config['cvm_mongodb_url']) as client:
+        db = client['cvm_extractor']
+        db.cvm_fi_diario.bulk_write(mongodb_bulk_list, ordered=False)

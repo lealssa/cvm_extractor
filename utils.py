@@ -1,5 +1,7 @@
 import json
-from datetime import datetime
+from datetime import datetime, date
+#import datetime
+from dateutil.rrule import rrule, MONTHLY
 
 def get_config():
     '''
@@ -38,3 +40,11 @@ def dict_values_to_date(input_dict,values_to_date):
             pass
 
     return input_dict
+
+def gen_month_list(start_dt):
+
+    end_dt = date.today()
+
+    dates = [dt.strftime('%Y%m') for dt in rrule(MONTHLY, dtstart=start_dt, until=end_dt)]
+
+    return dates
