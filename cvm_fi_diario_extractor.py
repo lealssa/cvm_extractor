@@ -1,14 +1,12 @@
 import json
 
 from pymongo.operations import InsertOne
-from utils import get_config, dict_values_to_float, dict_values_to_date, gen_month_list
+from utils import config, parse_values, gen_month_list
 import requests
 import csv
 import bson
 from pymongo import InsertOne,UpdateOne, MongoClient
 from datetime import datetime
-
-config = get_config()
 
 # Monta a lista de meses para extrair
 start_dt = datetime.strptime(config['cvm_inf_diario_fi_init_date'],'%Y-%m-%d').date()
@@ -40,9 +38,7 @@ for month in month_list:
         reader = csv.DictReader(decoded_content.splitlines(), delimiter=';')
         
         for row in reader:
-            #row['_id'] = bson.ObjectId()
-            row = dict_values_to_float(row, config['cvm_float_values'])
-            row = dict_values_to_date(row, config['cvm_date_values'])
+            row = parse_values(row)
             mongodb_bulk_list.append(            
                 UpdateOne({ '$and': [ {'CNPJ_FUNDO': row['CNPJ_FUNDO']},{'DT_COMPTC': row['DT_COMPTC']} ] }, {'$set': row}, upsert=True)
             )

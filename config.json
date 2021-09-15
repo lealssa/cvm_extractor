@@ -2,18 +2,9 @@
     "cvm_cad_fi_file": "http://dados.cvm.gov.br/dados/FI/CAD/DADOS/cad_fi.csv",
     "cvm_inf_diario_fi_url_base": "http://dados.cvm.gov.br/dados/FI/DOC/INF_DIARIO/DADOS/",
     "cvm_inf_diario_fi_prefix": "inf_diario_fi_",
-    "cvm_inf_diario_fi_init_date": "2019-1-1",
-    "cvm_float_values": [
-        "VL_PATRIM_LIQ",
-        "VL_QUOTA",
-        "VL_TOTAL",
-        "CAPTC_DIA",
-        "RESG_DIA",
-        "NR_COTST"
-    ],
-    "cvm_date_values": [
-    	"DT_COMPTC"
-    ],
+    "cvm_inf_diario_fi_init_date": "2021-9-1",
+    "cvm_float_values_prefix": [ "VL_" ],
+    "cvm_date_values_prefix": [ "DT_" ],
     "cvm_mongodb_db_name": "cvm_extractor",
     "cvm_mongodb_url": "mongodb://root:root@127.0.0.1:27017"
 }

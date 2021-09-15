@@ -1,6 +1,5 @@
 import json
 from datetime import datetime, date
-#import datetime
 from dateutil.rrule import rrule, MONTHLY
 
 def get_config():
@@ -15,34 +14,34 @@ def get_config():
 
     return config
 
-def dict_values_to_float(input_dict,values_to_float):
-    ''' 
-    Converte os valores de um dict para float de acordo com os
-    valores passados
+config = get_config()
+
+def parse_values(input_dict):
     '''
-    for k,v in [(k,v) for (k,v) in input_dict.items() if k in values_to_float]:        
-        try:            
-            input_dict[k] = float(v)
+    Converte valores de um dicionario para os tipos do MongoDB
+    '''
+    for k,v in [(k,v) for (k,v) in input_dict.items()]:        
+        try:
+            prefix = k[0:3]
+            if prefix in config['cvm_float_values_prefix']:
+                input_dict[k] = float(v)
+                pass
+
+            if prefix in config['cvm_date_values_prefix']:
+                input_dict[k] = datetime.strptime(v, "%Y-%m-%d")
+                pass              
+
         except ValueError:
             pass
 
     return input_dict
 
-def dict_values_to_date(input_dict,values_to_date):
-    ''' 
-    Converte os valores de um dict para date de acordo com os
-    valores passados
-    '''
-    for k,v in [(k,v) for (k,v) in input_dict.items() if k in values_to_date]:        
-        try:            
-            input_dict[k] = datetime.strptime(v, "%Y-%m-%d")
-        except ValueError:
-            pass
-
-    return input_dict
 
 def gen_month_list(start_dt):
-
+    '''
+    Gera uma lista contendo todos os meses a partir de uma data inicial.
+    Ex.: ['202109','202110']
+    '''
     end_dt = date.today()
 
     dates = [dt.strftime('%Y%m') for dt in rrule(MONTHLY, dtstart=start_dt, until=end_dt)]
